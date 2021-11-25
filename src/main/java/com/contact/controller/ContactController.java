@@ -14,6 +14,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,12 +23,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.contact.exception.ContactNotFoundException;
 import com.contact.model.Contact;
 import com.contact.service.ContactService;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 @RestController
 @RequestMapping("/contacts")
@@ -38,7 +42,6 @@ public class ContactController {
 	
 	@Autowired
 	private ContactService contactService;
-	
 	
 	
 	@GetMapping("/hello-world-internationalized")
@@ -129,7 +132,71 @@ public class ContactController {
 			
 	}
 	
+	//Implementation of Dynamic Filtering for Restful Service
+	@GetMapping("/filter")
+	public ResponseEntity<MappingJacksonValue>  getAllContactsByDyanmicFilter()
+	{
+			List<Contact> allContact = contactService.getAllContact();
+			if(allContact.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();	
+			}
+			
+			SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id","add1");
+			SimpleFilterProvider filters = new SimpleFilterProvider().addFilter("someBean", filter);
+			MappingJacksonValue mapping = new MappingJacksonValue(allContact);
+			mapping.setFilters(filters);
+			
+			return ResponseEntity.of(Optional.of(mapping));
+	}
 	
+	
+	@GetMapping(value="/filter/param",params = "version=1")
+	public ResponseEntity<MappingJacksonValue>  getAllContactsDyanmicFilterByParam()
+	{
+			List<Contact> allContact = contactService.getAllContact();
+			if(allContact.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();	
+			}
+			
+			SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id","add1");
+			SimpleFilterProvider filters = new SimpleFilterProvider().addFilter("someBean", filter);
+			MappingJacksonValue mapping = new MappingJacksonValue(allContact);
+			mapping.setFilters(filters);
+			
+			return ResponseEntity.of(Optional.of(mapping));
+	}
+	
+
+	@GetMapping(value="/filter/header",headers = "X-API-VERSION=1")
+	public ResponseEntity<MappingJacksonValue>  getAllContactsDyanmicFilterByHeader()
+	{
+			List<Contact> allContact = contactService.getAllContact();
+			if(allContact.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();	
+			}
+			SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id","add1");
+			SimpleFilterProvider filters = new SimpleFilterProvider().addFilter("someBean", filter);
+			MappingJacksonValue mapping = new MappingJacksonValue(allContact);
+			mapping.setFilters(filters);
+			
+			return ResponseEntity.of(Optional.of(mapping));
+	}
+	
+
+	@GetMapping(value="/filter/produces",produces = "application/vnd.company.app-v1+json")
+	public ResponseEntity<MappingJacksonValue>  getAllContactsDyanmicFilterByProduces()
+	{
+			List<Contact> allContact = contactService.getAllContact();
+			if(allContact.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();	
+			}
+			SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id","add1");
+			SimpleFilterProvider filters = new SimpleFilterProvider().addFilter("someBean", filter);
+			MappingJacksonValue mapping = new MappingJacksonValue(allContact);
+			mapping.setFilters(filters);
+			
+			return ResponseEntity.of(Optional.of(mapping));
+	}
 	
 	
 	
